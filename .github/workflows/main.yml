@@ -1,0 +1,31 @@
+name: Run Gitea Actions Pipeline on GitHub Runner
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install act-runner (Gitea Actions 官方运行器)
+        run: |
+          curl -LJO https://dl.gitea.com/act-runner/latest/act-runner-linux-amd64
+          chmod +x act-runner-linux-amd64
+          sudo mv act-runner-linux-amd64 /usr/local/bin/act-runner
+
+      - name: Register & Run Gitea Job
+        env:
+          GITEA_URL: ${{ secrets.GITEA_URL }}
+          GITEA_RUNNER_TOKEN: ${{ secrets.GITEA_RUNNER_TOKEN }}
+          GITEA_RUNNER_LABEL: linux-x64
+        run: |
+          # 注册临时 Gitea Runner
+          act-runner register \
+            --url $GITEA_URL \
+            --token $GITEA_RUNNER_TOKEN \
+            --labels $GITEA_RUNNER_LABEL \
+            --no-interactive
+
+          # 执行你的 Gitea 流水线任务
+          act-runner daemon &
+          sleep 5
