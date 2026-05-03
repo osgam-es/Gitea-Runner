@@ -27,5 +27,5 @@ jobs:
       - name: 启动守护监听任务
         run: |
           act_runner daemon &
-          sleep 30
+          sleep 300
           pkill act_runner
