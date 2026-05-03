@@ -7,25 +7,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install act-runner (Gitea Actions 官方运行器)
+      - name: Install act-runner (Gitea 官方amd64二进制)
         run: |
-          curl -LJO https://dl.gitea.com/act-runner/latest/act-runner-linux-amd64
-          chmod +x act-runner-linux-amd64
-          sudo mv act-runner-linux-amd64 /usr/local/bin/act-runner
+          wget https://dl.gitea.com/act-runner/latest/act-runner-linux-amd64.tar.gz
+          tar -zxvf act-runner-linux-amd64.tar.gz
+          sudo mv act-runner-linux-amd64/act-runner /usr/local/bin/
+          chmod +x /usr/local/bin/act-runner
 
-      - name: Register & Run Gitea Job
+      - name: 注册临时Gitea Runner并执行任务
         env:
           GITEA_URL: ${{ secrets.GITEA_URL }}
           GITEA_RUNNER_TOKEN: ${{ secrets.GITEA_RUNNER_TOKEN }}
           GITEA_RUNNER_LABEL: linux-x64
         run: |
-          # 注册临时 Gitea Runner
+          # 非交互注册Runner
           act-runner register \
-            --url $GITEA_URL \
-            --token $GITEA_RUNNER_TOKEN \
-            --labels $GITEA_RUNNER_LABEL \
+            --url "${GITEA_URL}" \
+            --token "${GITEA_RUNNER_TOKEN}" \
+            --labels "${GITEA_RUNNER_LABEL}" \
             --no-interactive
 
-          # 执行你的 Gitea 流水线任务
+          # 后台运行监听任务，超时自动退出
           act-runner daemon &
-          sleep 5
+          sleep 30
+          pkill act-runner
