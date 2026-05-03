@@ -7,24 +7,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 下载Gitea act-runner
+      - name: 下载官方 act-runner 0.6.1
         run: |
           wget https://dl.gitea.com/act_runner/0.6.1/act_runner-0.6.1-linux-amd64
           chmod +x act_runner-0.6.1-linux-amd64
-          sudo mv act_runner-0.6.1-linux-amd64 /usr/local/bin/act-runner
+          sudo mv act_runner-0.6.1-linux-amd64 /usr/local/bin/act_runner
 
-      - name: 注册&运行临时Runner
+      - name: 非交互注册 Gitea Runner
         env:
           GITEA_URL: ${{ secrets.GITEA_URL }}
-          GITEA_RUNNER_TOKEN: ${{ secrets.GITEA_RUNNER_TOKEN }}
-          GITEA_RUNNER_LABEL: linux-x64
+          GITEA_TOKEN: ${{ secrets.GITEA_RUNNER_TOKEN }}
         run: |
-          act-runner register \
-            --url "${GITEA_URL}" \
-            --token "${GITEA_RUNNER_TOKEN}" \
-            --labels "${GITEA_RUNNER_LABEL}" \
-            --no-interactive
+          act_runner register \
+            --no-interactive \
+            --instance "${GITEA_URL}" \
+            --token "${GITEA_TOKEN}" \
+            --labels linux-x64
 
-          act-runner daemon &
-          sleep 25
-          pkill act-runner
+      - name: 启动守护监听任务
+        run: |
+          act_runner daemon &
+          sleep 30
+          pkill act_runner
